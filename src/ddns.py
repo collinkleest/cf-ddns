@@ -1,10 +1,19 @@
+import logging
 from utils.env_manager import EnvironmentManager
 from cf_adapter.cf import CfAdapter
 from utils.ip_util import IPUtility
 
+
 CLOUDFLARE_API_KEY = EnvironmentManager.get_environment_variable("CLOUDFLARE_API_KEY")
 CLOUDFLARE_EMAIL = EnvironmentManager.get_environment_variable("CLOUDFLARE_EMAIL")
 CLOUDFLARE_ZONE_IDS = EnvironmentManager.get_environment_variable("CLOUDFLARE_ZONE_IDS")
+LOG_PATH = './cf-ddns.log'
+
+logging.basicConfig(
+    filename=LOG_PATH,
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 def main():
     ip_utility = IPUtility()
@@ -17,7 +26,9 @@ def main():
         for domain in filtered_domains:
             is_successful = cf_adapter.update_domain(domain)
             if is_successful:
-                print(f'successfuly updated name={domain["name"]}, type={domain["type"]} to ipAddress={ip_address}')
+                logging.info(f'successfuly updated domain={domain["name"]}, type={domain["type"]}, zoneId={zone_id} to ipAddress={ip_address}')
+            else:
+                logging.error(f'failed to update domain={domain["name"]}, type={domain["type"]}, zoneId={zone_id} to ipAddress={ip_address}')
 
 if __name__ == "__main__":
     main()
