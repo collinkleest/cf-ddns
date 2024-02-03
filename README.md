@@ -3,6 +3,8 @@ A basic dyanmic DNS background script for cloudflare domain registrar.
 
 This script is used to update A records in cloudflare, it uses the public ip address of the device that is running the script.
 
+The script will write out logs to a file inside the directory (`cf-ddns.log`), you can update this location if you want to inside the `src/ddns.py` file.
+
 ### Cron
 If you want this script to run every reoccuring then setup a crontab on the serer you want to run it from
 ```bash

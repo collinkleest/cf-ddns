@@ -16,6 +16,7 @@ logging.basicConfig(
 )
 
 def main():
+    print('running ddns.py, dynamic dns updater script')
     ip_utility = IPUtility()
     ip_address = ip_utility.get_public_ip()
     cf_adapter = CfAdapter(CLOUDFLARE_API_KEY, CLOUDFLARE_EMAIL, CLOUDFLARE_ZONE_IDS, ip_address)
