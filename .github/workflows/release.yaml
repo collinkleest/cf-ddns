@@ -1,0 +1,28 @@
+# .github/workflows/release.yaml
+
+name: cf-dns release
+
+on:
+  release:
+    types: [published]
+
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start Application
+        uses: collinkleest/remote-release@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          command: |
+            rm .env
+            echo CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }} >> .env
+            echo CLOUDFLARE_EMAIL=${{ secrets.CLOUDFLARE_EMAIL }} >> .env
+            pip install -r requirements.txt
+            CRON_JOB="*/5 * * * * /usr/bin/python ~/github/cf-ddns/src/ddns.py"
+            (crontab -l | grep -F "$CRON_JOB") || (crontab -l; echo "$CRON_JOB") | crontab -
