@@ -1,45 +1,82 @@
 import unittest
-from unittest.mock import MagicMock, patch
-from src.cf_adapter.cf import CfAdapter  # Assuming your file is named cf_adapter.py
+from unittest.mock import patch, MagicMock
+from logging import Logger
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.cf_adapter.cf import CfAdapter  # Assuming your class is in cf_adapter.py
+
 
 class TestCfAdapter(unittest.TestCase):
 
     def setUp(self):
-        self.cf_adapter = CfAdapter(api_key='your_api_key', cf_email='your_email',
-                                    zone_ids='zone_id_1, zone_id_2', ip_address='your_ip_address')
+        self.api_key = "fake-api-key"
+        self.cf_email = "test@example.com"
+        self.ip_address = "127.0.0.1"
+        self.logger = MagicMock(Logger)
+        self.adapter = CfAdapter(
+            api_key=self.api_key,
+            cf_email=self.cf_email,
+            ip_address=self.ip_address,
+            logger=self.logger,
+        )
 
-    @patch('requests.get')
-    def test_fetch_domains_success(self, mock_get):
-        # Mocking the requests.get method
+    @patch("cf_adapter.requests.get")
+    def test_get_zone_ids_success(self, mock_get):
+        # Mock response for requests.get
         mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {'result': [{'name': 'example.com', 'type': 'A', 'content': '127.0.0.1'}]}
+        mock_response.json.return_value = {
+            "result": [{"id": "zone-id-1"}, {"id": "zone-id-2"}]
+        }
         mock_get.return_value = mock_response
 
-        result = self.cf_adapter.fetch_domains('zone_id_1')
+        zone_ids = self.adapter.get_zone_ids()
 
-        self.assertEqual(result, {'result': [{'name': 'example.com', 'type': 'A', 'content': '127.0.0.1'}]})
+        # Verify the behavior
+        self.assertEqual(zone_ids, ["zone-id-1", "zone-id-2"])
         mock_get.assert_called_once_with(
-            'https://api.cloudflare.com/client/v4/zones/zone_id_1/dns_records', headers=self.cf_adapter.construct_headers())
+            "https://api.cloudflare.com/client/v4/zones", headers=self.adapter.headers
+        )
+        self.logger.error.assert_not_called()
 
-    @patch('requests.get')
-    def test_fetch_domains_failure(self, mock_get):
-        # Mocking the requests.get method for a failure scenario
+    @patch("cf_adapter.requests.get")
+    def test_get_zone_ids_failure(self, mock_get):
+        # Simulate non-200 status code
         mock_response = MagicMock()
         mock_response.status_code = 500
+        mock_response.text = "Internal Server Error"
         mock_get.return_value = mock_response
 
-        result = self.cf_adapter.fetch_domains('zone_id_1')
+        zone_ids = self.adapter.get_zone_ids()
 
-        self.assertEqual(result, [])
+        # Verify the behavior when the request fails
+        self.assertEqual(zone_ids, [])
         mock_get.assert_called_once_with(
-            'https://api.cloudflare.com/client/v4/zones/zone_id_1/dns_records', headers=self.cf_adapter.construct_headers())
+            "https://api.cloudflare.com/client/v4/zones", headers=self.adapter.headers
+        )
+        self.logger.error.assert_called_once_with(
+            "Error when getting zone ids: Internal Server Error"
+        )
 
-    def test_construct_zone_ids(self):
-        result = self.cf_adapter.construct_zone_ids('zone_id_1, zone_id_2')
-        self.assertEqual(result, ['zone_id_1', 'zone_id_2'])
+    @patch("cf_adapter.requests.get")
+    def test_get_zone_ids_exception(self, mock_get):
+        # Simulate an exception during the request
+        mock_get.side_effect = Exception("Request failed")
 
-    # Add more test cases for other methods as needed
+        zone_ids = self.adapter.get_zone_ids()
 
-if __name__ == '__main__':
+        # Verify the behavior when an exception is raised
+        self.assertEqual(zone_ids, [])
+        mock_get.assert_called_once_with(
+            "https://api.cloudflare.com/client/v4/zones", headers=self.adapter.headers
+        )
+        self.logger.error.assert_called_once_with(
+            "Exception found when getting zone ids: Request failed"
+        )
+
+
+if __name__ == "__main__":
     unittest.main()
