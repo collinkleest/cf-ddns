@@ -14,6 +14,12 @@ Create virtual environment
 python -m venv venv
 ```
 
+Activate virtual environment
+
+```bash
+source venv/bin/activate
+```
+
 Install dependencies
 
 ```bash
