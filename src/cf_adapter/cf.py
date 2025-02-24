@@ -43,7 +43,8 @@ class CfAdapter:
                     zone_ids.append(result["id"])
                 return zone_ids
             else:
-                self.logger.error(f"Error when getting zone ids: {response.text}")
+                self.logger.error(
+                    f"Error when getting zone ids: {response.text}")
                 return zone_ids
         except Exception as e:
             self.logger.error(f"Exception found when getting zone ids: {e}")
@@ -73,7 +74,8 @@ class CfAdapter:
 
             if response.status_code == 200:
                 while self.is_another_page_available(result_info):
-                    response = self.fetch_dns_records(zone_id, result_info["page"] + 1)
+                    response = self.fetch_dns_records(
+                        zone_id, result_info["page"] + 1)
                     if response.status_code == 200:
                         json_data = response.json()
                         result_info = json_data["result_info"]
@@ -88,25 +90,28 @@ class CfAdapter:
                 return domains
 
         except Exception as e:
-            self.logger.exception(f"Exception found when fetching domains: {e}")
+            self.logger.exception(
+                f"Exception found when fetching domains: {e}")
             return domains
 
-    def construct_upload_payload(self, domain: dict) -> dict:
+    def construct_upload_payload(self, domain: dict, is_proxied=False) -> dict:
         return {
             "comment": f"dns record updated dynamically by cf-dns script {self.timestamp_service.get_formatted_timestamp()}",
             "content": self.ip_address,
             "name": domain["name"],
             "type": domain["type"],
-            "proxied": False,
+            "proxied": is_proxied,
         }
 
     def update_domain(self, domain: dict) -> bool:
         try:
             zone_id = domain["zone_id"]
             record_id = domain["id"]
+            is_proxied = domain["proxied"]
             response = requests.patch(
                 f"{self.cf_domain}/client/{self.cf_api_version}/zones/{zone_id}/dns_records/{record_id}",
-                data=json.dumps(self.construct_upload_payload(domain)),
+                data=json.dumps(
+                    self.construct_upload_payload(domain, is_proxied)),
                 headers=self.headers,
             )
             return response.status_code == 200 and response.json()["success"]

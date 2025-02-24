@@ -46,11 +46,11 @@ def main():
             is_successful = cf_adapter.update_domain(domain)
             if is_successful:
                 logger.info(
-                    f'successfuly updated domain={domain["name"]}, type={domain["type"]}, zoneId={zone_id} to ipAddress={ip_address}'
+                    f'successfuly updated domain={domain["name"]}, type={domain["type"]}, zoneId={zone_id} to ipAddress={ip_address}, is_proxied={domain["proxied"]}'
                 )
             else:
                 logger.error(
-                    f'failed to update domain={domain["name"]}, type={domain["type"]}, zoneId={zone_id} to ipAddress={ip_address}'
+                    f'failed to update domain={domain["name"]}, type={domain["type"]}, zoneId={zone_id} to ipAddress={ip_address}, is_proxied={domain["proxied"]}'
                 )
 
 
