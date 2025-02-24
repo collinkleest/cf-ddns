@@ -1,0 +1,16 @@
+meta {
+  name: fetch zone ids
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.cloudflare.com/client/v4/zones
+  body: none
+  auth: none
+}
+
+headers {
+  X-Auth-Email: {{email}}
+  X-Auth-Key: {{api_key}}
+}

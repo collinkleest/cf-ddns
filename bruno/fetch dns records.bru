@@ -1,0 +1,20 @@
+meta {
+  name: fetch dns records
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://api.cloudflare.com/client/v4/zones/{{zone_id}}/dns_records?page=1
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 1
+}
+
+headers {
+  X-Auth-Email: {{email}}
+  X-Auth-Key: {{api_key}}
+}
