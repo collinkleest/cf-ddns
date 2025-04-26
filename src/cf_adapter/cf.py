@@ -61,6 +61,10 @@ class CfAdapter:
             f"{self.cf_domain}/client/{self.cf_api_version}/zones/{zone_id}/dns_records?page={page_number}",
             headers=self.headers,
         )
+    
+    def append_zone_id(self, zone_id: str, domains: List[dict]) -> None:
+        for domain in domains:
+            domain['zone_id'] = zone_id
 
     def fetch_domains(self, zone_id: str) -> List[dict]:
         domains: List[dict] = []
@@ -71,6 +75,7 @@ class CfAdapter:
             result_info = json_data["result_info"]
 
             domains = json_data["result"]
+            self.append_zone_id(zone_id, domains)
 
             if response.status_code == 200:
                 while self.is_another_page_available(result_info):
@@ -79,7 +84,7 @@ class CfAdapter:
                     if response.status_code == 200:
                         json_data = response.json()
                         result_info = json_data["result_info"]
-                        domains = [*domains, json_data["result"]]
+                        domains = [*domains, self.append_zone_id(zone_id, json_data["result"])]
                     else:
                         self.logger.error(f"Error: {response.status_code}")
                         return domains
