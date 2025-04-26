@@ -6,7 +6,7 @@ class IPUtility:
     @staticmethod
     def get_public_ip(logger: Logger):
         try:
-            response = requests.get("https://api64.ipify.org?format=json")
+            response = requests.get("https://api.ipify.org/?format=json")
             if response.status_code == 200:
                 ip_data = response.json()
                 return ip_data.get("ip")
